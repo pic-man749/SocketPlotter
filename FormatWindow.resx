@@ -118,17 +118,32 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="label1.Text" xml:space="preserve">
-    <value>本ソフトウェアでは複数のデータを同時にグラフに描画することができます。
-データのフォーマットはjson形式です。
-keyがシリーズ名（データの種別名）、それに紐づくvalueを値として認識します。
-valueの形式は下記に対応しています（値としてはどちらも1000）。
+    <value>本ソフトウェアではjson形式で受信したデータをグラフ描画します。
+対応しているフォーマットはネストなしのjsonであり、key, valueがstring形式のみです。
+また、{"type":"data"}のkeyValueを含んだjsonデータをプロット対象としています。
+
+例：
+　{"type":"data", "val1" : "100", "val2" : "200"}
+　　-&gt; val1：y=100, val2：y=200としてプロット（xの値は受信時刻）
+
+valueの形式は下記に対応しています。
 　・数値の文字列（例："1000.0"）
 　・double型のバイト列を16進数化した文字列（例："0000000000408F40"）
 　　・リトルエンディアン
-　
-■注意事項
-　・下記のkeyは特殊キーとしてグラフ描画の対象外としています
-　　・"type"
-　　・"id"</value>
+上記の例で示した値はどちらも1000となります。
+
+■特殊キーについて
+下記のkeyは特殊キーです。キーに指定してもグラフ描画されません。
+　・"type"
+　・"id"
+
+これらの特殊キーは下記の役割を持ちます。
+　・"type"：jsonデータの種別を表します。valueの値によってjsonの解釈が決まります。
+　　・{"type"："data"}  -&gt; グラフ描画用データのjsonとして扱います
+　　・{"type"："start"} -&gt; グラフ描画を開始します
+　　・{"type"："stop"}  -&gt; グラフ描画を停止します
+　　・{"type"："exit"}  -&gt; ソケットを閉じます。データ送信元が通信を切断する際の
+　　　　　　　　　　　　　通知として利用することを想定しています。
+　・"id" : 送信元IDを表します（送信元判別用で、SocketPlotter上での副作用はなし）</value>
   </data>
 </root>
