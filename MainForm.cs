@@ -49,18 +49,39 @@ namespace SocketPlotter {
 
         private void BtnPlotReset_Click(object sender, EventArgs e) {
             graphWindow.ClearChartSeries();
+            knownKeyList.Clear();
         }
 
         private void btnDetectedSeriesAllCheck_Click(object sender, EventArgs e) {
-
+            foreach(var v in dictTableRows.Values) {
+                v.cbSeriesEnable.Checked = true;
+            }
         }
 
         private void btnDetectedSeriesAllUncheck_Click(object sender, EventArgs e) {
-
+            foreach(var v in dictTableRows.Values) {
+                v.cbSeriesEnable.Checked = false;
+            }
         }
 
         private void btnDetectedSeriesClear_Click(object sender, EventArgs e) {
-
+            // reset
+            this.tblSeries.Controls.Clear();
+            this.tblSeries.RowStyles.Clear();
+            this.tblSeries.RowCount = 1;
+            this.tblSeries.Controls.Add(this.lLatestValue, 4, 0);
+            this.tblSeries.Controls.Add(this.lDownSampling, 3, 0);
+            this.tblSeries.Controls.Add(this.lUseRightYAxis, 2, 0);
+            this.tblSeries.Controls.Add(this.lVisible, 1, 0);
+            this.tblSeries.Controls.Add(this.lSeriesName, 0, 0);
+            // チェックボックスが外れた状態でクリアすると次回更新時該当グラフに適用されないためチェック状態にする
+            foreach(var v in dictTableRows.Values) {
+                v.cbSeriesEnable.Checked = true;
+                v.cbSeriesUse2ndYAxis.Checked = false;
+                v.cbDownSampling.Checked = true;
+            }
+            this.knownKeyList.Clear();
+            this.dictTableRows.Clear();
         }
 
         private void TrackBarPlotTime_ValueChanged(object sender, EventArgs e) {

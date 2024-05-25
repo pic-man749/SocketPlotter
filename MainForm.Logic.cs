@@ -18,15 +18,28 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 namespace SocketPlotter {
     public partial class MainForm {
 
+        // socket 
         Socket listener = null;
         Socket handler = null;
         CancellationTokenSource cts = new CancellationTokenSource();
         Thread threadPacketRecv = null;
 
+        // graph window
         private GraphWindow graphWindow = null;
 
+        // status
         private bool isPlotting = false;
         private int downSampleNum = 1;
+
+        // series table
+        private struct TableRow {
+            public CheckBox cbSeriesEnable;
+            public CheckBox cbSeriesUse2ndYAxis;
+            public CheckBox cbDownSampling;
+            public Label lSeriesLatestValue;
+        }
+        private Dictionary<string, TableRow> dictTableRows = new Dictionary<string, TableRow>();
+        private List<string> knownKeyList = new List<string>();
 
         private void UserInit() {
             // show graph window
@@ -67,7 +80,8 @@ namespace SocketPlotter {
                 // clear queue
                 ReceivedPacketQueue.Clear();
 
-                // clear chart
+                // clear chart and table
+                knownKeyList.Clear();
                 graphWindow.ClearChart();
                 graphWindow.SetIsPlotting(true);
                 graphWindow.BackupStopWatchTim();
@@ -153,6 +167,19 @@ namespace SocketPlotter {
                         if(rp.data.ContainsKey("type")) {
                             switch(rp.data["type"]) {
                                 case "data":
+                                    foreach(var key in rp.data.Keys) {
+                                        // if special keys, then skip
+                                        if(key == "type" || key == "id") {
+                                            continue;
+                                        }
+                                        // is new key? then add keyList and series table row
+                                        if(!knownKeyList.Contains(key)) {
+                                            knownKeyList.Add(key);
+                                            // DictDownSamplingCounter[key] = downSampleNum;
+                                            AddNewSeries(key);
+                                            // isNeedRefresh = true;
+                                        }
+                                    }
                                     ReceivedPacketQueue.Add(rp);
                                     break;
                                 case "start":
@@ -247,6 +274,77 @@ namespace SocketPlotter {
             graphWindow.SetYScale(min, max, true);
         }
 
+        private void AddNewSeries(string key) {
+            if(this.InvokeRequired) {
+                this.BeginInvoke((MethodInvoker)delegate { AddNewSeries(key); });
+            } else {
+                if(dictTableRows.Keys.Contains(key)) {
+                    graphWindow.SetSeriesEnable(key, dictTableRows[key].cbSeriesEnable.Checked);
+                    graphWindow.ChangePlotAxis(key, dictTableRows[key].cbSeriesUse2ndYAxis.Checked);
+                    return;
+                }
+
+                // add row
+                tblSeries.RowCount += 1;
+                tblSeries.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+                this.tblSeries.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55F));
+                this.tblSeries.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15F));
+                this.tblSeries.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15F));
+                this.tblSeries.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15F));
+
+                int nowRow = tblSeries.RowCount - 1;
+                int colCount = 0;
+
+                // make new series label
+                Label l = new Label();
+                l.Text = key;
+                l.Dock = System.Windows.Forms.DockStyle.Fill;
+                l.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+                tblSeries.Controls.Add(l, colCount++, nowRow);
+
+                // make visible CheckBox and add Dict
+                CheckBox cbVisible = new CheckBox();
+                cbVisible.Checked = true;
+                cbVisible.Name = key;
+                cbVisible.Dock = System.Windows.Forms.DockStyle.Fill;
+                cbVisible.CheckedChanged += ChangeSeriesVisibleCb;
+                cbVisible.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+                tblSeries.Controls.Add(cbVisible, colCount++, nowRow);
+
+                // make 2ndAxis CheckBox and add Dict
+                CheckBox cb2ndAxis = new CheckBox();
+                cb2ndAxis.Checked = false;
+                cb2ndAxis.Name = key;
+                cb2ndAxis.Dock = System.Windows.Forms.DockStyle.Fill;
+                cb2ndAxis.CheckedChanged += ChangeSeries2ndAxisCb;
+                cb2ndAxis.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+                tblSeries.Controls.Add(cb2ndAxis, colCount++, nowRow);
+
+                // make down sampling CheckBox and add Dict
+                CheckBox cbDownSampling = new CheckBox();
+                cbDownSampling.Checked = true;
+                cbDownSampling.Name = key;
+                cbDownSampling.Dock = System.Windows.Forms.DockStyle.Fill;
+                cbDownSampling.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+                tblSeries.Controls.Add(cbDownSampling, colCount++, nowRow);
+
+                // make new latest value label
+                Label llv = new Label();
+                llv.Text = "0.0";
+                llv.Dock = System.Windows.Forms.DockStyle.Fill;
+                llv.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+                tblSeries.Controls.Add(llv, colCount++, nowRow);
+
+                TableRow tr = new TableRow();
+                tr.cbSeriesEnable = cbVisible;
+                tr.cbSeriesUse2ndYAxis = cb2ndAxis;
+                tr.cbDownSampling = cbDownSampling;
+                tr.lSeriesLatestValue = llv;
+
+                dictTableRows.Add(key, tr);
+            }
+        }
+
         // --------------------------------------------------
         // misc functions
         // --------------------------------------------------
@@ -288,5 +386,14 @@ namespace SocketPlotter {
             }
         }
 
+        private void ChangeSeriesVisibleCb(object sender, EventArgs e) {
+            var s = (CheckBox)sender;
+            graphWindow.SetSeriesEnable(s.Name, s.Checked);
+        }
+
+        private void ChangeSeries2ndAxisCb(object sender, EventArgs e) {
+            var s = (CheckBox)sender;
+            graphWindow.ChangePlotAxis(s.Name, s.Checked);
+        }
     }
 }
