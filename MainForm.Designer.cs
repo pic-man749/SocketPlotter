@@ -36,6 +36,7 @@
             this.rbUDP = new System.Windows.Forms.RadioButton();
             this.rbTcp = new System.Windows.Forms.RadioButton();
             this.gbDetectedSeries = new System.Windows.Forms.GroupBox();
+            this.cbBlockLatestValueUpdate = new System.Windows.Forms.CheckBox();
             this.btnDetectedSeriesAllUncheck = new System.Windows.Forms.Button();
             this.btnDetectedSeriesAllCheck = new System.Windows.Forms.Button();
             this.btnDetectedSeriesClear = new System.Windows.Forms.Button();
@@ -204,6 +205,7 @@
             | System.Windows.Forms.AnchorStyles.Left)));
             this.gbDetectedSeries.AutoSize = true;
             this.gbDetectedSeries.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.gbDetectedSeries.Controls.Add(this.cbBlockLatestValueUpdate);
             this.gbDetectedSeries.Controls.Add(this.btnDetectedSeriesAllUncheck);
             this.gbDetectedSeries.Controls.Add(this.btnDetectedSeriesAllCheck);
             this.gbDetectedSeries.Controls.Add(this.btnDetectedSeriesClear);
@@ -214,6 +216,19 @@
             this.gbDetectedSeries.TabIndex = 202;
             this.gbDetectedSeries.TabStop = false;
             this.gbDetectedSeries.Text = "Detected series";
+            // 
+            // cbBlockLatestValueUpdate
+            // 
+            this.cbBlockLatestValueUpdate.AutoSize = true;
+            this.cbBlockLatestValueUpdate.Checked = global::SocketPlotter.Properties.Settings.Default.cbBlockLatestValueUpdate;
+            this.cbBlockLatestValueUpdate.DataBindings.Add(new System.Windows.Forms.Binding("Checked", global::SocketPlotter.Properties.Settings.Default, "cbBlockLatestValueUpdate", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.cbBlockLatestValueUpdate.Location = new System.Drawing.Point(428, 22);
+            this.cbBlockLatestValueUpdate.Name = "cbBlockLatestValueUpdate";
+            this.cbBlockLatestValueUpdate.Size = new System.Drawing.Size(162, 16);
+            this.cbBlockLatestValueUpdate.TabIndex = 204;
+            this.cbBlockLatestValueUpdate.Text = "disable latest value update";
+            this.cbBlockLatestValueUpdate.UseVisualStyleBackColor = true;
+            this.cbBlockLatestValueUpdate.CheckedChanged += new System.EventHandler(this.cbBlockLatestValueUpdate_CheckedChanged);
             // 
             // btnDetectedSeriesAllUncheck
             // 
@@ -697,6 +712,7 @@
         private System.Windows.Forms.TrackBar TrackBarPlotTime;
         private System.Windows.Forms.Button BtnPlotReset;
         private System.Windows.Forms.Button BtnPlotStart;
+        private System.Windows.Forms.CheckBox cbBlockLatestValueUpdate;
     }
 }
 

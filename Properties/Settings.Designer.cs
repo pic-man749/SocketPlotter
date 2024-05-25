@@ -142,5 +142,17 @@ namespace SocketPlotter.Properties {
                 this["rbSocketTypeUdp"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool cbBlockLatestValueUpdate {
+            get {
+                return ((bool)(this["cbBlockLatestValueUpdate"]));
+            }
+            set {
+                this["cbBlockLatestValueUpdate"] = value;
+            }
+        }
     }
 }

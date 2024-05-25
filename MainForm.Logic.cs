@@ -43,17 +43,14 @@ namespace SocketPlotter {
         private Dictionary<string, TableRow> dictTableRows = new Dictionary<string, TableRow>();
         private List<string> knownKeyList = new List<string>();
         private Dictionary<string, int> DictDownSamplingCounter = new Dictionary<string, int>();
+        private bool isLatestValueUpdateDisabled = false;
 
         private void UserInit() {
-            // show graph window
-            graphWindow = new GraphWindow(
-                                    TrackBarPlotTime.Value,
-                                    cbPlotMarker.Checked,
-                                    cbBufferFullScale.Checked,
-                                    TrackBarPlotTime.Maximum);
 
             // init UI view
-            UpdateTrackBarValue();
+            // update trackbar value
+            LabelPoltPoint.Text = TrackBarPlotTime.Value.ToString();
+            // update socket status
             UpdateCtrlText(lSocketStatus, "disconnected");
 
             // select comb box default
@@ -69,6 +66,9 @@ namespace SocketPlotter {
                 tbY2ndMax.Enabled = false;
                 tbY2ndMin.Enabled = false;
             }
+
+            // init flag
+            isLatestValueUpdateDisabled = cbBlockLatestValueUpdate.Checked;
         }
         
         private void ProcBtnConnectClick() {
@@ -198,7 +198,9 @@ namespace SocketPlotter {
                                 // add queue
                                 ReceivedPacketQueue.Add(rp);
                                 // update Latest Value in table
-                                UpdateLatestValue(rp.data);
+                                if(!isLatestValueUpdateDisabled) {
+                                    UpdateLatestValue(rp.data);
+                                }
                                 break;
                             case "start":
                                 if(!isPlotting) {

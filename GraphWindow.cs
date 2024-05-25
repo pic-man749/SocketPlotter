@@ -25,7 +25,7 @@ namespace SocketPlotter {
 
         private Dictionary<string, Series> buffer = new Dictionary<string, Series>();
 
-        public GraphWindow(int range, bool marker, bool fsBuf, int bufMax) {
+        public GraphWindow(int range, bool marker, bool fsBuf, int bufMax, Point stPos, int w) {
             plotRange = range;
             isMarkerPlot = marker;
             isFullScaleBuffer = fsBuf;
@@ -37,6 +37,11 @@ namespace SocketPlotter {
             chartDefault.Series.Clear();
             chartRefreshTimer.Elapsed += ChartUpdateTimerCallback;
             chartRefreshTimer.AutoReset = false;
+
+            // init start position
+            this.StartPosition = FormStartPosition.Manual;
+            this.Location = stPos;
+            this.Width = w;
 
             this.Show();
         }

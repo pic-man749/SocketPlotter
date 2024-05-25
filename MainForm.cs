@@ -27,6 +27,17 @@ namespace SocketPlotter {
             if(needRestorePosition == 0) {
                 this.Location = new System.Drawing.Point(100, 100);
             }
+
+            // show graph window
+            int x = this.Location.X;
+            int y = this.Location.Y + this.Height;
+            graphWindow = new GraphWindow(
+                                    TrackBarPlotTime.Value,
+                                    cbPlotMarker.Checked,
+                                    cbBufferFullScale.Checked,
+                                    TrackBarPlotTime.Maximum,
+                                    new Point(x, y),
+                                    this.Width);
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
@@ -142,6 +153,10 @@ namespace SocketPlotter {
 
         private void FormatSToolStripMenuItem_Click(object sender, EventArgs e) {
             FormatWindow _ = new FormatWindow();
+        }
+
+        private void cbBlockLatestValueUpdate_CheckedChanged(object sender, EventArgs e) {
+            isLatestValueUpdateDisabled = cbBlockLatestValueUpdate.Checked;
         }
     }
 }
