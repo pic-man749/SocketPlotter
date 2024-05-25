@@ -19,13 +19,15 @@ namespace SocketPlotter {
     public partial class MainForm {
 
         // socket 
-        Socket listener = null;
-        Socket handler = null;
-        CancellationTokenSource cts = new CancellationTokenSource();
-        Thread threadPacketRecv = null;
+        private Socket listener = null;
+        private Socket handler = null;
+        private CancellationTokenSource cts = new CancellationTokenSource();
+        private Thread threadPacketRecv = null;
 
         // graph window
         private GraphWindow graphWindow = null;
+        // ignore key list
+        private readonly string[] SPECIAL_KEY_LIST = {"type", "id"};
 
         // status
         private bool isPlotting = false;
@@ -40,6 +42,7 @@ namespace SocketPlotter {
         }
         private Dictionary<string, TableRow> dictTableRows = new Dictionary<string, TableRow>();
         private List<string> knownKeyList = new List<string>();
+        private Dictionary<string, int> DictDownSamplingCounter = new Dictionary<string, int>();
 
         private void UserInit() {
             // show graph window
@@ -150,6 +153,9 @@ namespace SocketPlotter {
                 }
 
                 while(!cts.Token.IsCancellationRequested) {
+                    // reset params
+                    DictDownSamplingCounter = new Dictionary<string, int>();
+                    
                     // wait for data recv
                     byte[] buffer = new byte[2_048];
                     int received = handler.Receive(buffer, SocketFlags.None);
@@ -160,46 +166,57 @@ namespace SocketPlotter {
                         if(!s.StartsWith("{")) {
                             continue;
                         }
+                        var jsonDict = JsonSerializer.Deserialize<Dictionary<string, string>>(s + "}");
                         ReceivedPacket rp = new ReceivedPacket {
-                            data = JsonSerializer.Deserialize<Dictionary<string, string>>(s + "}"),
+                            data = new Dictionary<string, string>(),
                             recvTime = recvTime
                         };
-                        if(rp.data.ContainsKey("type")) {
-                            switch(rp.data["type"]) {
-                                case "data":
-                                    foreach(var key in rp.data.Keys) {
-                                        // if special keys, then skip
-                                        if(key == "type" || key == "id") {
-                                            continue;
-                                        }
-                                        // is new key? then add keyList and series table row
-                                        if(!knownKeyList.Contains(key)) {
-                                            knownKeyList.Add(key);
-                                            // DictDownSamplingCounter[key] = downSampleNum;
-                                            AddNewSeries(key);
-                                            // isNeedRefresh = true;
-                                        }
+
+                        // invalid format
+                        if(!jsonDict.ContainsKey("type")) {
+                            continue;
+                        }
+                        switch(jsonDict["type"]) {
+                            case "data":
+                                foreach(var key in jsonDict.Keys) {
+                                    // if special keys, then skip
+                                    if(SPECIAL_KEY_LIST.Contains(key)) {
+                                        continue;
                                     }
-                                    ReceivedPacketQueue.Add(rp);
-                                    break;
-                                case "start":
-                                    if(!isPlotting) {
-                                        this.Invoke((MethodInvoker)delegate { ProcBtnStartClick(); });
+                                    // add dict for plot
+                                    rp.data[key] = jsonDict[key];
+                                    // is new key? then add keyList and series table row
+                                    if(!knownKeyList.Contains(key)) {
+                                        knownKeyList.Add(key);
+                                        // DictDownSamplingCounter[key] = downSampleNum;
+                                        AddNewSeries(key);
+                                        // isNeedRefresh = true;
                                     }
-                                    break;
-                                case "stop":
-                                    if(isPlotting) {
-                                        this.Invoke((MethodInvoker)delegate { ProcBtnStartClick(); });
-                                    }
-                                    break;
-                                case "exit":
-                                    this.Invoke((MethodInvoker)delegate { ProcBtnConnectClick(); });
-                                    return;
-                                    break;
-                                default :
-                                    // nothing to do
-                                    break;
-                            }
+                                    // incriment downSampling counter
+                                    // DictDownSamplingCounter[key]++;
+                                }
+                                // add queue
+                                ReceivedPacketQueue.Add(rp);
+                                // update Latest Value in table
+                                UpdateLatestValue(rp.data);
+                                break;
+                            case "start":
+                                if(!isPlotting) {
+                                    this.Invoke((MethodInvoker)delegate { ProcBtnStartClick(); });
+                                }
+                                break;
+                            case "stop":
+                                if(isPlotting) {
+                                    this.Invoke((MethodInvoker)delegate { ProcBtnStartClick(); });
+                                }
+                                break;
+                            case "exit":
+                                this.Invoke((MethodInvoker)delegate { ProcBtnConnectClick(); });
+                                return;
+                                break;
+                            default :
+                                // nothing to do
+                                break;
                         }
                     }
                 }
@@ -342,6 +359,18 @@ namespace SocketPlotter {
                 tr.lSeriesLatestValue = llv;
 
                 dictTableRows.Add(key, tr);
+            }
+        }
+
+        private void UpdateLatestValue(Dictionary<string, string> kvs) {
+            if(this.InvokeRequired) {
+                this.BeginInvoke((MethodInvoker)delegate { UpdateLatestValue(kvs); });
+            } else {
+                // check key existance and update
+                foreach(string key in kvs.Keys) {
+                    if(dictTableRows.Keys.Contains(key))
+                        dictTableRows[key].lSeriesLatestValue.Text = kvs[key];
+                }
             }
         }
 

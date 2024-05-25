@@ -25,9 +25,6 @@ namespace SocketPlotter {
 
         private Dictionary<string, Series> buffer = new Dictionary<string, Series>();
 
-        // ignore key list
-        private readonly string[] IGNORE_KEY_LIST = {"type", "id"};
-
         public GraphWindow(int range, bool marker, bool fsBuf, int bufMax) {
             plotRange = range;
             isMarkerPlot = marker;
@@ -118,21 +115,19 @@ namespace SocketPlotter {
             ReceivedPacket rp;
             while(ReceivedPacketQueue.Take(out rp)) {
                 Dictionary<string, double> kvs = new Dictionary<string, double>();
-                foreach(var key in rp.data.Keys.ToArray()) {
-                    if(!IGNORE_KEY_LIST.Contains(key)) {
-                        double tmp;
-                        // format : numeric string
-                        if(double.TryParse(rp.data[key], out tmp)) {
-                            kvs[key] = tmp;
-                        } 
-                        // format : double hex string
-                        else if(String2Double(rp.data[key], out tmp)) {
-                            kvs[key] = tmp;
-                        }
-                        // invalid format
-                        else {
-                            continue;
-                        }
+                foreach(var key in rp.data.Keys) {
+                    double tmp;
+                    // format : numeric string
+                    if(double.TryParse(rp.data[key], out tmp)) {
+                        kvs[key] = tmp;
+                    } 
+                    // format : double hex string
+                    else if(String2Double(rp.data[key], out tmp)) {
+                        kvs[key] = tmp;
+                    }
+                    // invalid format
+                    else {
+                        continue;
                     }
                 }
                 AddDatapointToSeries(rp.recvTime / 1000d, kvs);
