@@ -118,15 +118,15 @@ namespace SocketPlotter {
             ReceivedPacket rp;
             while(ReceivedPacketQueue.Take(out rp)) {
                 Dictionary<string, double> kvs = new Dictionary<string, double>();
-                foreach(var key in rp.Data.Keys.ToArray()) {
+                foreach(var key in rp.data.Keys.ToArray()) {
                     if(!IGNORE_KEY_LIST.Contains(key)) {
                         double tmp;
                         // format : numeric string
-                        if(double.TryParse(rp.Data[key], out tmp)) {
+                        if(double.TryParse(rp.data[key], out tmp)) {
                             kvs[key] = tmp;
                         } 
                         // format : double hex string
-                        else if(String2Double(rp.Data[key], out tmp)) {
+                        else if(String2Double(rp.data[key], out tmp)) {
                             kvs[key] = tmp;
                         }
                         // invalid format

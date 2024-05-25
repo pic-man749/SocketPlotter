@@ -146,10 +146,34 @@ namespace SocketPlotter {
                         if(!s.StartsWith("{")) {
                             continue;
                         }
-                        ReceivedPacket rp = new ReceivedPacket();
-                        rp.Data = JsonSerializer.Deserialize<Dictionary<string, string>>(s + "}");
-                        rp.recvTime = recvTime;
-                        ReceivedPacketQueue.Add(rp);
+                        ReceivedPacket rp = new ReceivedPacket {
+                            data = JsonSerializer.Deserialize<Dictionary<string, string>>(s + "}"),
+                            recvTime = recvTime
+                        };
+                        if(rp.data.ContainsKey("type")) {
+                            switch(rp.data["type"]) {
+                                case "data":
+                                    ReceivedPacketQueue.Add(rp);
+                                    break;
+                                case "start":
+                                    if(!isPlotting) {
+                                        this.Invoke((MethodInvoker)delegate { ProcBtnStartClick(); });
+                                    }
+                                    break;
+                                case "stop":
+                                    if(isPlotting) {
+                                        this.Invoke((MethodInvoker)delegate { ProcBtnStartClick(); });
+                                    }
+                                    break;
+                                case "exit":
+                                    this.Invoke((MethodInvoker)delegate { ProcBtnConnectClick(); });
+                                    return;
+                                    break;
+                                default :
+                                    // nothing to do
+                                    break;
+                            }
+                        }
                     }
                 }
             }catch (Exception ex) {

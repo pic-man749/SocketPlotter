@@ -31,7 +31,7 @@ namespace SocketPlotter {
     }
 
     public struct ReceivedPacket {
-        public Dictionary<string, string> Data;
+        public Dictionary<string, string> data;
         public long recvTime;
     }
 }
