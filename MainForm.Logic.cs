@@ -286,7 +286,9 @@ namespace SocketPlotter {
                 tbYMax.Enabled = false;
                 tbYMin.Enabled = false;
             }
-            graphWindow.SetYScale(min, max, false);
+            if(!double.IsNaN(min) && !double.IsNaN(max) ) {
+                graphWindow.SetYScale(min, max, false);
+            }
         }
         private void Set2ndYScale() {
             double min = double.NaN;
