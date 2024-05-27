@@ -105,18 +105,22 @@ namespace SocketPlotter {
 
         private void tbYMin_TextChanged(object sender, EventArgs e) {
             Validation.TryPaeseDouble((TextBox)sender, out _);
+            SetYScale();
         }
 
         private void tbYMax_TextChanged(object sender, EventArgs e) {
             Validation.TryPaeseDouble((TextBox)sender, out _);
+            SetYScale();
         }
 
         private void tbY2ndMin_TextChanged(object sender, EventArgs e) {
             Validation.TryPaeseDouble((TextBox)sender, out _);
+            Set2ndYScale();
         }
 
         private void tbY2ndMax_TextChanged(object sender, EventArgs e) {
             Validation.TryPaeseDouble((TextBox)sender, out _);
+            Set2ndYScale();
         }
 
         private void cbAutoScale_CheckedChanged(object sender, EventArgs e) {

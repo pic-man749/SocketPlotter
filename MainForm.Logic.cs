@@ -219,12 +219,20 @@ namespace SocketPlotter {
                             break;
                         case "start":
                             if(!isPlotting) {
-                                this.Invoke((MethodInvoker)delegate { ProcBtnStartClick(); });
+                                this.Invoke((MethodInvoker)delegate {
+                                    if(!isPlotting) {
+                                        ProcBtnStartClick();
+                                    }
+                                });
                             }
                             break;
                         case "stop":
                             if(isPlotting) {
-                                this.Invoke((MethodInvoker)delegate { ProcBtnStartClick(); });
+                                this.Invoke((MethodInvoker)delegate {
+                                    if(isPlotting) {
+                                        ProcBtnStartClick();
+                                    }
+                                });
                             }
                             break;
                         case "exit":
