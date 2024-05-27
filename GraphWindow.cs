@@ -125,11 +125,12 @@ namespace SocketPlotter {
                     // format : numeric string
                     if(double.TryParse(rp.data[key], out tmp)) {
                         kvs[key] = tmp;
-                    } 
-                    // format : double hex string
-                    else if(String2Double(rp.data[key], out tmp)) {
-                        kvs[key] = tmp;
                     }
+                    // disable double hex string
+                    // format : double hex string
+                    //else if(String2Double(rp.data[key], out tmp)) {
+                    //    kvs[key] = tmp;
+                    //}
                     // invalid format
                     else {
                         continue;
